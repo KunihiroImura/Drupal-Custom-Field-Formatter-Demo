@@ -1,0 +1,7 @@
+custom_field_formatter.distancefromuser:
+  version: 1.x
+  js:
+    js/distance-from-user.js: { scope: footer }
+  dependencies:
+    - core/jquery
+    - core/drupal
