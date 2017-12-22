@@ -46,9 +46,14 @@
       // Wait for geolocation to return a result.
       Drupal.distanceFromUser.deferred.promise().done(function(coords) {
         // Calculate distance for each item.
+        var lang = drupalSettings.path.currentLanguage;
         $("div.gps-display-distance", context).each(function() {
-          var distance = getDistanceFromLatLonInMiles($(this).data('lat'), $(this).data('lng'), coords.latitude, coords.longitude);
-          $(this).html('<span class="fa fa-map-marker">&nbsp;</span>' + distance + ' miles away from you');
+          var distance = getDistanceFromLatLon(lang, $(this).data('lat'), $(this).data('lng'), coords.latitude, coords.longitude);
+          if (lang === 'ja') {
+            $(this).html('<span class="fa fa-map-signs">&nbsp;</span>' + ' 今の場所から ' + distance + ' 離れています。');
+          } else {
+            $(this).html('<span class="fa fa-map-marker">&nbsp;</span>' + ' ' + distance + ' miles away from you');
+          }
         });
       })
       .fail(function(error) {
@@ -57,22 +62,35 @@
     }
   };
 
-  function getDistanceFromLatLonInMiles(lat1,lon1,lat2,lon2) {
-    var R = 3959; // Radius of the earth in miles
-    var dLat = deg2rad(lat2 - lat1);
-    var dLon = deg2rad(lon2 - lon1);
-    var a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon/2) * Math.sin(dLon/2)
-      ;
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    return Math.round(d * 10) / 10;
-  }
+  function getDistanceFromLatLon(lang, lat1,lng1,lat2,lng2) {
+    var lat_average = Math.PI / 180 * ( lat1 + ((lat2 - lat1) / 2) ),
+        lat_difference = Math.PI / 180 * ( lat1 - lat2 ),
+        lon_difference = Math.PI / 180 * ( lng1 - lng2 ),
+        curvature_radius_tmp = 1 - 0.00669438 * Math.pow(Math.sin(lat_average), 2),
+        meridian_curvature_radius = 6335439.327 / Math.sqrt(Math.pow(curvature_radius_tmp, 3)),
+        prime_vertical_circle_curvature_radius = 6378137 / Math.sqrt(curvature_radius_tmp),
+        distance = 0,
+        distance_unit = "";
 
-  function deg2rad(deg) {
-    return deg * (Math.PI/180)
+    //２点間の距離をメートルで取得する（単位なし）
+    distance = Math.pow(meridian_curvature_radius * lat_difference, 2) + Math.pow(prime_vertical_circle_curvature_radius * Math.cos(lat_average) * lon_difference, 2);
+    distance = Math.sqrt(distance);
+    distance = Math.round(distance);
+
+    if (lang === 'ja') {
+      // ２点間の距離を単位ありで取得する（1000m以上は、kmで表示）
+      distance_unit = Math.round(distance);
+      if (distance_unit < 1000) {
+        distance_unit = distance_unit + "m";
+      } else {
+        distance_unit = Math.round(distance_unit / 100);
+        distance_unit = (distance_unit / 10) + "km";
+      }
+    } else {
+      distance_unit = Math.floor((distance / 1609.344) * 10) / 10;
+    }
+
+    return distance_unit;
   }
 
 })(jQuery, Drupal);

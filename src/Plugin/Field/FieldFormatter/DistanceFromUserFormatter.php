@@ -1,6 +1,7 @@
 <?php
 
-namespace Drupal\cpd_maps\Plugin\Field\FieldFormatter;
+//namespace Drupal\cpd_maps\Plugin\Field\FieldFormatter;
+namespace Drupal\custom_field_formatter\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
