@@ -1,8 +1,12 @@
 name: Custom Field Formatter Demo
 type: module
 description: Provides a custom field formatter for geolocation field. 
+version: '8.x-1.1'
 core: 8.x
+project: 'custom_field_formatter'
 package: Custom
 dependencies:
   - geocoder
   - geolocation
+interface translation project: custom_field_formatter
+interface translation server pattern: modules/custom/custom_field_formatter/translations/ja.po

@@ -46,14 +46,13 @@
       // Wait for geolocation to return a result.
       Drupal.distanceFromUser.deferred.promise().done(function(coords) {
         // Calculate distance for each item.
-        var lang = drupalSettings.path.currentLanguage;
         $("div.gps-display-distance", context).each(function() {
-          var distance = getDistanceFromLatLon(lang, $(this).data('lat'), $(this).data('lng'), coords.latitude, coords.longitude);
-          if (lang === 'ja') {
-            $(this).html('<span class="fa fa-map-signs">&nbsp;</span>' + ' 今の場所から ' + distance + ' 離れています。');
-          } else {
-            $(this).html('<span class="fa fa-map-marker">&nbsp;</span>' + ' ' + distance + ' miles away from you');
-          }
+          var distance = getDistanceFromLatLng($(this).data('lat'), $(this).data('lng'), coords.latitude, coords.longitude);
+          var message = Drupal.t(' %distance miles away from you.');
+          message = message.replace('%distance', distance);
+
+          // Create HTML message
+          $(this).html('<span class="fa fa-map-signs">&nbsp;</span>' + message);
         });
       })
       .fail(function(error) {
@@ -62,15 +61,18 @@
     }
   };
 
-  function getDistanceFromLatLon(lang, lat1,lng1,lat2,lng2) {
-    var lat_average = Math.PI / 180 * ( lat1 + ((lat2 - lat1) / 2) ),
-        lat_difference = Math.PI / 180 * ( lat1 - lat2 ),
-        lon_difference = Math.PI / 180 * ( lng1 - lng2 ),
-        curvature_radius_tmp = 1 - 0.00669438 * Math.pow(Math.sin(lat_average), 2),
-        meridian_curvature_radius = 6335439.327 / Math.sqrt(Math.pow(curvature_radius_tmp, 3)),
-        prime_vertical_circle_curvature_radius = 6378137 / Math.sqrt(curvature_radius_tmp),
-        distance = 0,
-        distance_unit = "";
+  function getDistanceFromLatLng(lat1,lng1,lat2,lng2) {
+    var lat_average = Math.PI / 180 * ( lat1 + ((lat2 - lat1) / 2) );
+    var lat_difference = Math.PI / 180 * ( lat1 - lat2 );
+    var lon_difference = Math.PI / 180 * ( lng1 - lng2 );
+    var curvature_radius_tmp = 1 - 0.00669438 * Math.pow(Math.sin(lat_average), 2);
+    var meridian_curvature_radius = 6335439.327 / Math.sqrt(Math.pow(curvature_radius_tmp, 3))
+    var prime_vertical_circle_curvature_radius = 6378137 / Math.sqrt(curvature_radius_tmp);
+    var distance = 0;
+    var distance_unit = "";
+
+    // Drupalの言語区分取得
+    var lang = drupalSettings.path.currentLanguage;
 
     //２点間の距離をメートルで取得する（単位なし）
     distance = Math.pow(meridian_curvature_radius * lat_difference, 2) + Math.pow(prime_vertical_circle_curvature_radius * Math.cos(lat_average) * lon_difference, 2);
